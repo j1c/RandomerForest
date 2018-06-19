@@ -16,6 +16,11 @@
 
 # RStudio files
 .Rproj.user/
+packrat/lib*/
+packrat/src/
+packrat/
+.Rprofile
+*.Rproj
 
 # produced vignettes
 vignettes/*.html
@@ -34,3 +39,5 @@ vignettes/*.pdf
 
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
+
+
