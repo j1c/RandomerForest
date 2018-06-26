@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH
-#SBATCH --job-name=rerf_uci
+#SBATCH --job-name=rf_subsample
 #SBATCH --array=1-23,25-106
 #SBATCH --time=3-0:0:0
 #SBATCH --nodes=1
