@@ -69,7 +69,8 @@ X <- scale(X)
 fold <- GetFolds(paste0(dataPath, "cv_partitions/", dataSet, "_partitions.txt"))
 nFolds <- length(fold)
 
-
+print(paste0())
+cat("\n")
 for (m in classifiers) {
   # Parameter tuning
   if (m == "rf-bag") {
@@ -106,7 +107,6 @@ for (m in classifiers) {
     data <- splitData(X, Y, fold, fold.idx)
 
     for (mtrys.idx in seq.int(length(mtrys))) {
-      print(paste0("trying mtrys: ", mtrys[mtrys.idx]))
       model <- randomForest(data$X.train, data$y.train, 
                             mtry = mtrys[mtrys.idx], 
                             replace = replace, 

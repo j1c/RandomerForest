@@ -3,22 +3,26 @@
 rm(list = ls())
 options(scipen = 999)
 
-# Parameters
-rerfPath <- "~/work/jaewon"
-dataPath <- "~/work/jaewon/data/uci/processed/"
 library(randomForest)
-library(dummies)
-# source(paste0(rerfPath, "R/Code/Utils/RerFEval.R"))
-# source(paste0(rerfPath, "R/Code/Utils/GetCatMap.R"))
-source(paste0(rerfPath, "/RandomForest/R/Code/Utils/GetFolds.R"))
+
+# Parameters
+
+# For local
+#rerfPath <- "./"
+#dataPath <- "./Data/processed/"
+#source(paste0(rerfPath, "R/Code/Utils/GetFolds.R"))
+#source(paste0(rerfPath, "R/Code/Utils/Utils.R"))
+
+# For MARCC
+rerfPath <- "~/work/jaewon/"
+dataPath <- "~/work/jaewon/data/uci/processed/"
+source(paste0(rerfPath, "RandomerForest/R/Code/Utils/GetFolds.R"))
+source(paste0(rerfPath, "RandomerForest/R/Code/Utils/Utils.R"))
 
 classifiers <- c("rf-bag", "rf-subsample")
 nCl <- length(classifiers)
 
-nTrees <- 500L
-supervised <- 0
-num.cores <- 24L
-seed <- 20180621L
+seed <- 20180626L
 
 set.seed(seed = seed)
 
@@ -29,10 +33,9 @@ testTime <- list()
 bestIdx <- list()
 params <- list()
 
-dataSets <- read.table(paste0(dataPath, "names.txt"))[[1]]
-# dataSet <- dataset
 
 dataSet <- "abalone"
+#dataSets <- read.table(paste0(dataPath, "names.txt"))[[1]]
 
 # Set variables
 testError[[dataSet]] <- vector(mode = "list", length = nCl)
@@ -66,67 +69,56 @@ X <- scale(X)
 fold <- GetFolds(paste0(dataPath, "cv_partitions/", dataSet, "_partitions.txt"))
 nFolds <- length(fold)
 
+print(paste0())
 cat("\n")
-trainIdx <- unlist(fold[-1])
-testIdx <- fold[[1]]
-
-X_train <- X[trainIdx, ]
-X_test <- X[testIdx, ]
-
-# Y <- factor(Y)
-Y_train <- factor(Y[trainIdx])
-Y_test <- factor(Y[testIdx])
-
-labels.train <- unique(Y_train)
-labels.test <- unique(Y_test)
-
-levs <- c(labels.train, labels.test[!(labels.test %in% labels.train)])
-
-Y_train <- factor(Y_train)
-Y_test <- factor(Y[testIdx], levels = levs)
-
-print(paste0("Training dataset ", dataSet))
-
 for (m in classifiers) {
   # Parameter tuning
   if (m == "rf-bag") {
     replace <- T
-  }
-  else if (m == "rf-subsample") {
+  } else if (m == "rf-subsample") {
     replace <- F
   }
-
+  
   # Control for different number of feature selection
   if (p < 5) {
-    mtry <- 1:p
+    mtrys <- 1:p
+  } else {
+    mtrys <- ceiling(p^c(1 / 4, 1 / 2, 3 / 4, 1))
   }
-  else {
-    mtry <- ceiling(p^c(1 / 4, 1 / 2, 3 / 4, 1))
-  }
-
+  
   if (n >= 1000) {
     nodesize <- ceiling(n * 0.002)
-  }
-  else {
+  } else {
     nodesize <- 1
   }
-
-  params[[dataSet]][[m]] <- list(replace = replace, mtry = mtry)
-
-  size <- length(mtry)
-  OOBErrors <- vector("numeric", size)
+  
+  params[[dataSet]][[m]] <- list(replace = replace, mtrys = mtrys, nodesize = nodesize)
+  
+  size <- length(mtrys)
+  # OOBErrors <- vector("numeric", size)
   # testError <- vector("numeric", size)
-
-  idx <- 1
-
-  print(paste0("evaluating model ", m))
-  for (p in params[[dataSet]][[m]]$mtry) {
-    res <- randomForest(X, factor(Y), replace = replace, nodesize = nodesize)
-    OOBErrors[idx] <- mean(res$err.rate[, 1])
-    idx <- idx + 1
+  OOBErrors <- matrix(as.double(rep(NA, size)), ncol = nFolds, nrow = size)
+  testErrors <- matrix(as.double(rep(NA, size)), ncol = nFolds, nrow = size)
+  
+  print(paste0("evaluating model: ", m))
+  for (fold.idx in seq.int(nFolds)) {
+    print(paste0("fitting fold: ", fold.idx))
+    
+    data <- splitData(X, Y, fold, fold.idx)
+    
+    for (mtrys.idx in seq.int(length(mtrys))) {
+      model <- randomForest(data$X.train, data$y.train, 
+                            mtry = mtrys[mtrys.idx], 
+                            replace = replace, 
+                            nodesize = nodesize)
+      
+      OOBErrors[mtrys.idx, fold.idx] <- model$err.rate[, 1][length(model$err.rate[, 1])]
+      testErrors[mtrys.idx, fold.idx] <- computePredictions(model, data$X.test, data$y.test)
+    }
   }
-  print(paste0(m, " minimum OOB error: ", min(OOBErrors)))
-
-  OOBError[[dataSet]][[m]] <- append(OOBError[[dataSet]][[m]], OOBErrors)
-  save(OOBError, file = paste0(rerfPath, "RandomerForest/R/Results/2018.06.26/", dataSet, "_2018_06_26.RData"))
+  
+  OOBError[[dataSet]][[m]] <- OOBErrors
+  testError[[dataSet]][[m]] <- testErrors
 }
+
+save(OOBError, testError, file = paste0(rerfPath, "RandomerForest/R/Result/2018.06.26/", dataSet, "_2018_06_26.RData"))

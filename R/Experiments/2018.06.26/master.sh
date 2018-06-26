@@ -17,7 +17,7 @@ module restore j1_env
 echo "My SLURM_ARRAY_TASK_ID: " $SLURM_ARRAY_TASK_ID
 
 # NAME_FILE=../../../Data/processed/names.txt
-NAME_FILE = ~/work/jaewon/data/uci/processed/names.txt
+NAME_FILE=~/work/jaewon/data/uci/processed/names.txt
 DATASET=$(sed "${SLURM_ARRAY_TASK_ID}q;d" $NAME_FILE)
 
 sed "s/abalone/${DATASET}/g" run_benchmarks_2018_06_26.R > task${SLURM_ARRAY_TASK_ID}.R
