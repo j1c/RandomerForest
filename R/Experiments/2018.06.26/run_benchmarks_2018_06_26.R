@@ -69,8 +69,9 @@ X <- scale(X)
 fold <- GetFolds(paste0(dataPath, "cv_partitions/", dataSet, "_partitions.txt"))
 nFolds <- length(fold)
 
-print(paste0())
+print(paste0("Evaluting Dataset: ", dataSet))
 cat("\n")
+
 for (m in classifiers) {
   # Parameter tuning
   if (m == "rf-bag") {
