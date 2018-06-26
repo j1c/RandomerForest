@@ -8,7 +8,7 @@ rerfPath <- "~/work/jaewon"
 dataPath <- "~/work/jaewon/data/uci/processed/"
 library(randomForest)
 library(dummies)
-source(paste0(rerfPath, "R/Code/Utils/RerFEval.R"))
+# source(paste0(rerfPath, "R/Code/Utils/RerFEval.R"))
 # source(paste0(rerfPath, "R/Code/Utils/GetCatMap.R"))
 source(paste0(rerfPath, "R/Code/Utils/GetFolds.R"))
 
