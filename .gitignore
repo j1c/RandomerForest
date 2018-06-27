@@ -21,6 +21,7 @@ packrat/src/
 packrat/
 .Rprofile
 *.Rproj
+.Rproj.user
 
 # produced vignettes
 vignettes/*.html
@@ -40,5 +41,5 @@ vignettes/*.pdf
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
 
-
-.Rproj.user
+# SLURM Things
+*.out
