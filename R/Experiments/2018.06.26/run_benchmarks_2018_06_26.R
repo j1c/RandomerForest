@@ -85,6 +85,7 @@ for (m in classifiers) {
     mtrys <- 1:p
   } else {
     mtrys <- ceiling(p^c(1 / 4, 1 / 2, 3 / 4, 1))
+    print(paste0("Mtrys: ", mtrys))
   }
   
   if (n >= 1000) {
