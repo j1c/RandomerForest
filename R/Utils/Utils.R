@@ -111,4 +111,5 @@ plotResults <- function(mean.error, difference.error, data.path, categories = NU
     ggtitle("Random Forest Package Bootstrap vs Subsampling")
   
   print(fig)
+  return(fig)
 }

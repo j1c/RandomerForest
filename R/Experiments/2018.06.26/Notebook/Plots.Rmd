@@ -4,6 +4,7 @@ output: html_notebook
 ---
 
 ```{r}
+library('ggplot2')
 path <- '../../../Utils/'
 source(paste0(path, 'Utils.R'))
 ```
@@ -11,6 +12,8 @@ source(paste0(path, 'Utils.R'))
 ```{r}
 results.path <- '../Result/'
 res <- computeResults(results.path)
-plotResults(res$mean.error, res$difference.error, '../../../../Data/uci/processed/')
+plot <- plotResults(res$mean.error, res$difference.error, '../../../../Data/uci/processed/')
+
+ggsave(filename = 'rf_bootstrap_subsample.pdf', plot = plot)
 ```
 
