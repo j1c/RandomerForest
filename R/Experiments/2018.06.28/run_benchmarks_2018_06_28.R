@@ -8,6 +8,8 @@ library(AUC)
 library(dummies)
 library(R.utils)
 
+date <- "2018.06.28/"
+
 ## For MARCC
 rerfPath <- "~/work/jaewon/"
 dataPath <- "~/work/jaewon/RandomerForest/Data/uci/processed/"
@@ -248,6 +250,7 @@ for (m in classifiers) {
     numNodes[[dataSet]][[m]][k, ] <- res$numNodes
     bestIdx[[dataSet]][[m]][k] <- res$best.idx
     
-    save(testError, testAUC, OOBError, OOBAUC, trainTime, OOBTime, testTime, treeStrength, treeCorr, numNodes, bestIdx, params, file = paste0(rerfPath, "RandomerForest/R/Results/2018.02.13/", dataSet, "_rerfc_2018_02_13.RData"))
+    save(testError, testAUC, OOBError, OOBAUC, trainTime, OOBTime, testTime, treeStrength, treeCorr, numNodes, bestIdx, params, 
+         file = paste0(rerfPath, "RandomerForest/R/Experiments/", date, "Results/", dataSet, ".RData"))
   }
 }
