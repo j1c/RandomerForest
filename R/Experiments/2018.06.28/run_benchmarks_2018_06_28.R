@@ -13,9 +13,9 @@ date <- "2018.06.28/"
 ## For MARCC
 rerfPath <- "~/work/jaewon/"
 dataPath <- "~/work/jaewon/RandomerForest/Data/uci/processed/"
-source(paste0(rerfPath, "RandomerForest/Utils/RerFEval.R"))
-source(paste0(rerfPath, "RandomerForest/Utils/GetCatMap.R"))
-source(paste0(rerfPath, "RandomerForest/Utils/GetFolds.R"))
+source(paste0(rerfPath, "RandomerForest/R/Utils/RerFEval.R"))
+source(paste0(rerfPath, "RandomerForest/R/Utils/GetCatMap.R"))
+source(paste0(rerfPath, "RandomerForest/R/Utils/GetFolds.R"))
 
 ## For local
 # rerfPath <- "./"
