@@ -81,14 +81,15 @@ computeResults <- function(path) {
     # TODO: implement pairwise comparisons for more than 2 classifiers
   }
   
-  plotResults(mean.error, difference.error)
+  return(list(mean.error = mean.error, difference.error = difference.error))
+  # plotResults(mean.error, difference.error)
 }
 
-plotResults <- function(mean.error, difference.error, categories = NULL) {
+plotResults <- function(mean.error, difference.error, data.path, categories = NULL) {
   library("ggplot2")
   
   ##
-  dataset.category <- as.vector(read.csv('./Data/uci/processed/dataset_category.txt', header=F)[[1]])
+  dataset.category <- as.vector(read.csv(paste0(data.path, 'dataset_category.txt'), header=F)[[1]])
   dataset.category <- dataset.category[-24]
   dataset.category <- dataset.category[-4]
    

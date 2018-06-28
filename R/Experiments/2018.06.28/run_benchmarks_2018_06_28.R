@@ -11,14 +11,14 @@ library(rerf)
 # For local
 #rerfPath <- "./"
 #dataPath <- "./Data/processed/"
-#source(paste0(rerfPath, "R/Code/Utils/GetFolds.R"))
-#source(paste0(rerfPath, "R/Code/Utils/Utils.R"))
+#source(paste0(rerfPath, "R/Utils/GetFolds.R"))
+#source(paste0(rerfPath, "R/Utils/Utils.R"))
 
 # For MARCC
 rerfPath <- "~/work/jaewon/"
 dataPath <- "~/work/jaewon/data/uci/processed/"
-source(paste0(rerfPath, "RandomerForest/R/Code/Utils/GetFolds.R"))
-source(paste0(rerfPath, "RandomerForest/R/Code/Utils/Utils.R"))
+source(paste0(rerfPath, "RandomerForest/R/Utils/GetFolds.R"))
+source(paste0(rerfPath, "RandomerForest/R/Utils/Utils.R"))
 
 classifiers <- c("rerf-bag", "rerf-subsample")
 nCl <- length(classifiers)
