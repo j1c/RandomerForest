@@ -7,8 +7,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=24
 #SBATCH --mem=24G
-#SBATCH --partition=unlimited
-#SBATCH --shared
+#SBATCH --partition=parallel
+#SBATCH --exclusive
 #SBATCH --mail-type=end
 #SBATCH --mail-user=jaewonc78@gmail.com
 
