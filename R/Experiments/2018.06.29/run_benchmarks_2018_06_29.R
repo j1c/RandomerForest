@@ -8,7 +8,7 @@ library(AUC)
 library(dummies)
 library(R.utils)
 
-date <- "2018.06.28/"
+date <- "2018.06.29/"
 
 ## For MARCC
 rerfPath <- "~/work/jaewon/"
