@@ -2,13 +2,13 @@
 
 #SBATCH
 #SBATCH --job-name=rerf_subsample
-#SBATCH --array=1-23,25-106
+#SBATCH --array=100, 101
 #SBATCH --time=3:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=24
-#SBATCH --mem=120G
-#SBATCH --partition=parallel
-#SBATCH --exclusive
+#SBATCH --mem=24G
+#SBATCH --partition=unlimited
+#SBATCH --shared
 #SBATCH --mail-type=end
 #SBATCH --mail-user=jaewonc78@gmail.com
 
@@ -20,7 +20,7 @@ echo "My SLURM_ARRAY_TASK_ID: " $SLURM_ARRAY_TASK_ID
 NAME_FILE=~/work/jaewon/data/uci/processed/names.txt
 DATASET=$(sed "${SLURM_ARRAY_TASK_ID}q;d" $NAME_FILE)
 
-sed "s/abalone/${DATASET}/g" run_benchmarks_2018_06_28.R > task${SLURM_ARRAY_TASK_ID}.R
+sed "s/abalone/${DATASET}/g" run_benchmarks_2018_06_29.R > task${SLURM_ARRAY_TASK_ID}.R
 
 Rscript task${SLURM_ARRAY_TASK_ID}.R
 
