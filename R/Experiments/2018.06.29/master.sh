@@ -2,7 +2,7 @@
 
 #SBATCH
 #SBATCH --job-name=rerf_subsample
-#SBATCH --array=100, 101
+#SBATCH --array=100-101
 #SBATCH --time=3:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=24

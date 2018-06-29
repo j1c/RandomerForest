@@ -94,6 +94,8 @@ names(bestIdx[[dataSet]]) <- classifiers
 params[[dataSet]] <- vector(mode = "list", length = nCl)
 names(params[[dataSet]]) <- classifiers
 
+print(dataSet)
+
 for (m in classifiers) {
   if (m == "rerf-bag" || m == "rerf-subsample") {
     random.matrix <- "binary"
