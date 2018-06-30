@@ -11,18 +11,18 @@ library(R.utils)
 date <- "2018.06.29/"
 
 ## For MARCC
-# rerfPath <- "~/work/jaewon/"
-# dataPath <- "~/work/jaewon/RandomerForest/Data/uci/processed/"
-# source(paste0(rerfPath, "RandomerForest/R/Utils/RerFEval.R"))
-# source(paste0(rerfPath, "RandomerForest/R/Utils/GetCatMap.R"))
-# source(paste0(rerfPath, "RandomerForest/R/Utils/GetFolds.R"))
+rerfPath <- "~/work/jaewon/"
+dataPath <- "~/work/jaewon/RandomerForest/Data/uci/processed/"
+source(paste0(rerfPath, "RandomerForest/R/Utils/RerFEval.R"))
+source(paste0(rerfPath, "RandomerForest/R/Utils/GetCatMap.R"))
+source(paste0(rerfPath, "RandomerForest/R/Utils/GetFolds.R"))
 
 ## For local
-rerfPath <- "./"
-dataPath <- "./Data/uci/processed/"
-source(paste0(rerfPath, "R/Utils/RerFEval.R"))
-source(paste0(rerfPath, "R/Utils/GetCatMap.R"))
-source(paste0(rerfPath, "R/Utils/GetFolds.R"))
+# rerfPath <- "./"
+# dataPath <- "./Data/uci/processed/"
+# source(paste0(rerfPath, "R/Utils/RerFEval.R"))
+# source(paste0(rerfPath, "R/Utils/GetCatMap.R"))
+# source(paste0(rerfPath, "R/Utils/GetFolds.R"))
 
 
 
