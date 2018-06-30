@@ -224,12 +224,12 @@ RerFEval <-
                 }
                 
                 # compute strength and correlation
-                print("computing tree strength and correlation")
-                preds <- Predict(Xtest, forest, num.cores = params$num.cores, Xtrain = Xtrain, aggregate.output = F)
-                sc <- StrCorr(preds, Ytest)
-                print("strength and correlation complete")
-                treeStrength[forest.idx] <- sc$s
-                treeCorrelation[forest.idx] <- sc$rho
+                # print("computing tree strength and correlation")
+                # preds <- Predict(Xtest, forest, num.cores = params$num.cores, Xtrain = Xtrain, aggregate.output = F)
+                # sc <- StrCorr(preds, Ytest)
+                # print("strength and correlation complete")
+                # treeStrength[forest.idx] <- sc$s
+                # treeCorrelation[forest.idx] <- sc$rho
                 
                 # # save forest models
                 # save(forest, file = fileName)
