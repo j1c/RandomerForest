@@ -62,7 +62,7 @@ bagging <- 1 / exp(1)
 replacement <- T
 supervised <- 0
 num.cores <- 1L
-seed <- 20180628L
+seed <- 20180629L
 timeout <- 500
 
 ## Classifiers
