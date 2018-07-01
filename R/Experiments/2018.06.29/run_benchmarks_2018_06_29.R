@@ -61,7 +61,7 @@ max.depth <- ceiling(log2(nrow(X) * 0.8))
 bagging <- 1 / exp(1)
 replacement <- T
 supervised <- 0
-num.cores <- 1L
+num.cores <- 24L
 seed <- 20180629L
 timeout <- 500
 

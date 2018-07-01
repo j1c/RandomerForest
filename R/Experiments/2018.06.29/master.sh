@@ -2,11 +2,11 @@
 
 #SBATCH
 #SBATCH --job-name=rerf_subsample
-#SBATCH --array=100-101
-#SBATCH --time=3:00:00
+#SBATCH --array=1-23,25-106
+#SBATCH --time=3-0:0:0
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=24
-#SBATCH --mem=24G
+#SBATCH --mem=48G
 #SBATCH --partition=parallel
 #SBATCH --exclusive
 #SBATCH --mail-type=end
@@ -27,3 +27,4 @@ Rscript task${SLURM_ARRAY_TASK_ID}.R
 rm task${SLURM_ARRAY_TASK_ID}.R
 
 echo "job complete"
+
