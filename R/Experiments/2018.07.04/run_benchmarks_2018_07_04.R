@@ -16,8 +16,8 @@ library(randomForest)
 # For MARCC
 rerfPath <- "~/work/jaewon/"
 dataPath <- "~/work/jaewon/data/uci/processed/"
-source(paste0(rerfPath, "RandomerForest/R/Code/Utils/GetFolds.R"))
-source(paste0(rerfPath, "RandomerForest/R/Code/Utils/Utils.R"))
+source(paste0(rerfPath, "RandomerForest/R/Utils/GetFolds.R"))
+source(paste0(rerfPath, "RandomerForest/R/Utils/Utils.R"))
 
 classifiers <- c("rf-bag", "rf-subsample")
 nCl <- length(classifiers)
