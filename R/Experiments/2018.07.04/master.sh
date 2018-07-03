@@ -2,11 +2,11 @@
 
 #SBATCH
 #SBATCH --job-name=rf_subsample
-#SBATCH --array=4-4
+#SBATCH --array=4,
 #SBATCH --time=3-0:0:0
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=24
-#SBATCH --mem=120G
+#SBATCH --mem=20G
 #SBATCH --partition=parallel
 #SBATCH --exclusive
 #SBATCH --mail-type=end
