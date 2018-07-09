@@ -1,0 +1,195 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library('ggplot2')
+library('grid')
+library('gridExtra')
+library('cowplot')
+```
+
+
+
+```{r}
+plotResults <- function(df, classifiers) {
+  #library('ggplot2')
+  library('cowplot')
+  
+  categories <- df[['Category']][seq(1, nrow(df), 5)]
+  error.cls.1 <- df[[classifiers[1]]]
+  error.cls.2 <- df[[classifiers[2]]]
+  
+  error.cls.1 <- rowMeans(t(matrix(error.cls.1, nrow = 5)))
+  error.cls.2 <- rowMeans(t(matrix(error.cls.2, nrow = 5)))
+  
+  alt <- 'g'
+  
+  wilcox.all <- wilcox.test(error.cls.1, error.cls.2, paired = T, alternative = alt)
+  wilcox.categorical <- wilcox.test(error.cls.1[categories == 'categorical'], 
+                                    error.cls.2[categories == 'categorical'],
+                                    paired = T,
+                                    alternative = alt)
+  wilcox.numeric <- wilcox.test(error.cls.1[categories == 'numeric'],
+                                error.cls.2[categories == 'numeric'], 
+                                paired = T,
+                                alternative = alt)
+  
+  pvalue.all <- format(round(wilcox.all$p.value, 2), scientific = T)
+  pvalue.categorical <- format(round(wilcox.categorical$p.value, 2), scientific = T)
+  pvalue.numeric <- format(round(wilcox.numeric$p.value, 2), scientific = T)
+  
+  mean.error <- sqrt((error.cls.1 + error.cls.2) / 2)
+  difference.error <- sqrt(abs(error.cls.1 - error.cls.2)) * sign(error.cls.1 - error.cls.2)
+  
+  df <- data.frame(mean.error, difference.error, categories)
+  names(df) <- c("mean", "diff", "category")
+  df$category <- factor(df$category)
+  
+  fig <- ggplot(df, aes(x = mean, y = diff, color = category)) + geom_point() +
+    theme(
+      panel.background = element_blank(), axis.line = element_line(colour = "black")
+    ) +
+    labs(
+      x = expression(sqrt("Mean Error")),
+      y = expression(sqrt("Difference in Error"))
+    ) +
+    geom_hline(yintercept = 0) +
+    xlim(0, 1) +
+    ylim(-1, 1) +
+    annotate("text", label = 'bold("Subsampling Better")', x = 1, y = 1, parse = T, hjust = 'inward', vjust = 'inward') +
+    annotate("text", label = 'bold("Subsampling Worse")', x = 1, y = -1, parse = T, hjust = 'inward', vjust = 'inward') + 
+    # annotate("text", label = paste0("p=", pvalue.all, "\np=", pvalue.categorical, "\np=", pvalue.numeric),
+    #           x = 0, y = -1, vjust = 'inward', hjust = 'inward') 
+    annotate("text", label = paste0("p=", pvalue.all), 
+             x = 0, y = -.70, vjust = 'inward', hjust = 'inward', color = "black") +
+    annotate("text", label = paste0("p=", pvalue.categorical), 
+             x = 0, y = -.85, vjust = 'inward', hjust = 'inward', color = "#F8766D") +
+    annotate("text", label = paste0("p=", pvalue.numeric), 
+             x = 0, y = -1, vjust = 'inward', hjust = 'inward', color = "#00BFC4")
+  
+  print(fig)
+  return(list(df = df, fig = fig))
+}
+
+
+load('./../2018.07.02/uci_results.RData')
+classifiers <- c('RerF','RerF.subsample')
+
+res <- plotResults(df, classifiers)
+df.plot <- res$df
+fig <- res$fig
+
+res.rf <- plotResults(df.rf, c('rf.bag', 'rf.subsample'))
+fig.rf <- res.rf$fig
+```
+
+```{r}
+row.1.label <- ggplot(data.frame()) + xlim(0, 1) + ylim(0, 1) + theme_void() + annotate("text", label = "RerF Boostrap - Subsample", x = 0.5, y= 0.5) + coord_flip()
+row.1 <- plot_grid(fig, row.1.label, labels = "AUTO", ncol = 2, align = 'h', rel_widths = c(1, 0.1))
+
+row.2.label <- ggplot(data.frame()) + xlim(0, 1) + ylim(0, 1) + theme_void() + annotate("text", label = "RF Boostrap - Subsample", x = 0.5, y= 0.5) + coord_flip()
+row.2 <- plot_grid(fig, row.2.label, labels = "AUTO", ncol = 2, align = 'h', rel_widths = c(1, 0.1))
+plot_grid(row.1, row.2, labels = "AUTO", nrow = 2, align = 'v')
+```
+
+```{r}
+leg <- g_legend(kde)
+
+output <- plot_grid(fig + ggtitle("RerF Boostrap - Subsampling"), fig.rf + ggtitle("RF Bootstrap - Subsampling"), leg,  labels = "AUTO", nrow = 3, label_size = 0,  align = 'hv', rel_heights = c(2, 2, .1))
+
+print(output)
+```
+
+```{r}
+ggsave(filename = './results.pdf', plot = output, )
+```
+
+
+```{r}
+label <- 'paste0("atop("p= 100 ", p = 200)"")'
+  
+ggplot(data.frame()) + ylim(0, 1) + xlim(0, 1) +
+  theme_void() +
+  annotate("text", label = label, x = .5, y = .5, parse = T) 
+```
+
+
+```{r}
+kde <- ggplot(df.plot, aes(x = diff, color = category)) +
+  stat_density(geom = 'line', position = 'identity', size = 1) + 
+  stat_density(aes(x = diff, color = 'all'),  geom = 'line', size = 1) +
+  theme(#panel.background = element_blank(), 
+        axis.line = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(), 
+        axis.title = element_blank(), 
+        legend.direction = "horizontal",
+        legend.position = "bottom") +
+  geom_hline(yintercept = 0) + 
+  geom_vline(xintercept = 0) + 
+  xlim(-1, 1) +
+  coord_flip() + 
+  scale_color_manual(values=c('#000000','#F8766D','#00BFC4'))
+
+g_legend<-function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
+
+print(kde)
+```
+
+```{r}
+library(ggplot2)
+library(grid)
+library(gtable)
+
+p <- qplot(1,1)
+g <- ggplotGrob(p)
+
+panel_id <- g$layout[g$layout$name == "panel",c("t","l")]
+g <- gtable_add_cols(g, unit(1,"cm"))
+
+g <- gtable_add_grob(g, rectGrob(gp=gpar(fill="red")),
+                     t = panel_id$t, l = ncol(g))
+
+g <- gtable_add_rows(g, unit(1,"in"), 0)
+g <- gtable_add_grob(g, rectGrob(gp=gpar(fill="blue")),
+                     t = 1, l = panel_id$l)
+
+grid.newpage()
+grid.draw(g)
+
+```
+
+```{r}
+library(cowplot)
+
+#theme_set(theme_minimal())
+plot_grid(
+  plot_grid(
+    fig + theme(legend.position = "none"),
+    get_legend(kde), 
+    ncol = 1,
+    align = "hv"
+  ),
+  plot_grid(
+    kde + theme(legend.position = "none"), 
+    ggplot(), 
+    ncol = 1
+  ),
+  rel_widths = c(4, 2)
+)
+```
+
+```{r}
+g.kde <- ggplotGrob(kde)
+g.fig <- ggplotGrob(fig)
+g <- cbind(g.kde, g.fig, size = 'first')
+grid.newpage()
+grid.draw(g)
+```
+
