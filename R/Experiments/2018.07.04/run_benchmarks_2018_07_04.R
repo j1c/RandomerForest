@@ -123,4 +123,4 @@ for (m in classifiers) {
   testError[[dataSet]][[m]] <- testErrors
 }
 
-save(OOBError, testError, file = paste0(rerfPath, "RandomerForest/R/Result/2018.07.04/", dataSet, ".RData"))
+save(OOBError, testError, file = paste0(rerfPath, "RandomerForest/R/Experiments/2018.07.04/Results", dataSet, ".RData"))
