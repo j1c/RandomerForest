@@ -1,16 +1,20 @@
 ---
 title: "Random/Randomer Forest Bootstrap vs Subsample"
-output: html_document
+output:
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Random Forest Bootstrap vs Subsampling
+Variables swept over:
 
+* mtrys - $p^{(1/4, 1/2, 3/4, 1)}$
+* replace - T or F
 
-```{r randomForest}
+```{r randomForest, echo=T, eval=FALSE}
 # evaluate classifiers on benchmark datasets
 
 rm(list = ls())
@@ -137,8 +141,14 @@ for (m in classifiers) {
 save(OOBError, testError, file = paste0(rerfPath, "RandomerForest/R/Result/2018.06.26/", dataSet, "_2018_06_26.RData"))
 ```
 
+## RerF Bootstrap vs Subsampling
+Variables swept over:
 
-```{r rerf, echo=FALSE}
+* mtrys - $p^{(1/4, 1/2, 3/4, 1, 2)}$
+* sparsity - 1/p, 2/p, 3/p, 4/p, 5/p
+* replacement - T or F
+
+```{r rerf, echo=T, eval=FALSE}
 # evaluate classifiers on benchmark datasets
 
 rm(list=ls())
@@ -236,17 +246,13 @@ for (m in classifiers) {
   if (m == "rerf-bag" || m == "rerf-subsample") {
     random.matrix <- "binary"
     if (p < 5) {
-      # mtrys <- c(1:p, p^2)
-      mtrys <- p^2
+      mtrys <- c(1:p, p^2)
     } else if (p >= 5 && p <= 100) {
-      #mtrys <- ceiling(p^c(1/4, 1/2, 3/4, 1))
-      mtrys <- ceiling(p^2)
+      mtrys <- ceiling(p^c(1/4, 1/2, 3/4, 1, 2))
     } else {
-      # mtrys <- ceiling(p^c(1/4, 1/2, 3/4, 1))
-      mtrys <- ceiling(p^1.5)
+      mtrys <- ceiling(p^c(1/4, 1/2, 3/4, 1, 1.5))
     }
     sparsity <- (1:min(p-1, 5))/p
-    # prob <- c(0.5, 0.75, 0.9)
     prob <- 0.5
     
     if (m == "rerf-subsample") {
@@ -302,5 +308,133 @@ for (m in classifiers) {
          file = paste0(rerfPath, "RandomerForest/R/Experiments/", date, "Results/", dataSet, ".RData"))
   }
 }
-
 ```
+
+## Plotting results
+```{r plotting, fig.keep = 'none'}
+library('ggplot2')
+library('grid')
+library('gridExtra')
+library('gtable')
+
+plotResults <- function(df, classifiers, y.min = -1, y.max = 1) {
+  categories <- df[['Category']][seq(1, nrow(df), 5)]
+  error.cls.1 <- df[[classifiers[1]]]
+  error.cls.2 <- df[[classifiers[2]]]
+  
+  error.cls.1 <- rowMeans(t(matrix(error.cls.1, nrow = 5)))
+  error.cls.2 <- rowMeans(t(matrix(error.cls.2, nrow = 5)))
+  
+  # Compute One sided Wilcox Rank Test
+  alt <- 'g'
+  
+  wilcox.all <- wilcox.test(error.cls.1, error.cls.2, paired = T, alternative = alt, exact = F)
+  wilcox.categorical <- wilcox.test(error.cls.1[categories == 'categorical'], 
+                                    error.cls.2[categories == 'categorical'],
+                                    paired = T,
+                                    alternative = alt, 
+                                    exact = F)
+  wilcox.numeric <- wilcox.test(error.cls.1[categories == 'numeric'],
+                                error.cls.2[categories == 'numeric'], 
+                                paired = T,
+                                alternative = alt, 
+                                exact = F)
+  
+  pvalue.all <- format(round(wilcox.all$p.value, 2), scientific = T)
+  pvalue.categorical <- format(round(wilcox.categorical$p.value, 2), scientific = T)
+  pvalue.numeric <- format(round(wilcox.numeric$p.value, 2), scientific = T)
+  
+  mean.error <- sqrt((error.cls.1 + error.cls.2) / 2)
+  difference.error <- sqrt(abs(error.cls.1 - error.cls.2)) * sign(error.cls.1 - error.cls.2)
+  
+  df <- data.frame(mean.error, difference.error, categories)
+  names(df) <- c("mean", "diff", "category")
+  df$category <- factor(df$category)
+  
+  # Plot scatter
+  fig <- ggplot(df, aes(x = mean, y = diff, color = category)) + geom_point() +
+    theme(
+      panel.background = element_blank(), axis.line = element_line(colour = "black")
+    ) +
+    labs(
+      x = expression(sqrt("Mean Error")),
+      y = expression(sqrt("Difference in Error"))
+    ) +
+    geom_hline(yintercept = 0) +
+    xlim(0, 1) +
+    ylim(-1, 1) +
+    annotate("text", label = 'bold("Subsampling Better")', x = 1, y = 1, parse = T, hjust = 'inward', vjust = 'inward') +
+    annotate("text", label = 'bold("Subsampling Worse")', x = 1, y = -1, parse = T, hjust = 'inward', vjust = 'inward') + 
+    # annotate("text", label = paste0("p=", pvalue.all, "\np=", pvalue.categorical, "\np=", pvalue.numeric),
+    #           x = 0, y = -1, vjust = 'inward', hjust = 'inward') 
+    annotate("text", label = paste0("p=", pvalue.all), 
+             x = 0, y = -.6, vjust = 'inward', hjust = 'inward', color = "black") +
+    annotate("text", label = paste0("p=", pvalue.categorical), 
+             x = 0, y = -.8, vjust = 'inward', hjust = 'inward', color = "#F8766D") +
+    annotate("text", label = paste0("p=", pvalue.numeric), 
+             x = 0, y = -1, vjust = 'inward', hjust = 'inward', color = "#00BFC4")
+  
+  # Plot KDE
+  kde <- ggplot(df, aes(x = diff, color = category)) +
+    stat_density(geom = 'line', position = 'identity') + 
+    stat_density(aes(x = diff, color = 'all'),  geom = 'line') +
+    theme(panel.background = element_blank(), 
+          axis.line = element_blank(),
+          axis.ticks = element_blank(),
+          axis.text = element_blank(), 
+          axis.title = element_blank(), 
+          legend.direction = "horizontal",
+          legend.position = "bottom") +
+    geom_hline(yintercept = 0) + 
+    geom_vline(xintercept = 0) + 
+    xlim(-1, 1) +
+    coord_flip() + 
+    scale_color_manual(values=c('#000000','#F8766D','#00BFC4'))
+  
+  # print(fig)
+  return(list(fig = fig, kde = kde))
+}
+
+
+load('./../2018.07.02/uci_results.RData')
+load('./../2018.07.04/df.rf.RData')
+
+res <- plotResults(df, c('RerF','RerF.subsample'))
+fig.1 <- res$fig
+kde.1 <- res$kde + scale_fill_manual(name = "Dataset Type", values = c('black', '#F8766D','#00BFC4'), labels = c('All', 'Categorical', 'Numeric'))
+
+res <- plotResults(df.rf, c('rf.bag', 'rf.subsample'), -.5, .5)
+fig.2 <- res$fig
+kde.2 <- res$kde
+
+# Get legend for separate plotting
+g_legend<-function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
+
+leg <- g_legend(kde.1)
+# Combine figures
+g.1 <- ggplotGrob(fig.1 + theme(legend.position = 'none'))
+panel_id <- g.1$layout[g.1$layout$name == "panel",c("t","l")]
+g.1 <- gtable_add_cols(g.1, unit(4,"cm"))
+g.1 <- gtable_add_grob(g.1, ggplotGrob(kde.1 + theme(legend.position = 'none', plot.margin = unit(c(.13, 0, 0, 0), 'cm'))),
+                     t = panel_id$t, l = ncol(g.1))
+
+g.2 <- ggplotGrob(fig.2 + theme(legend.position = 'none'))
+panel_id <- g.2$layout[g.2$layout$name == "panel",c("t","l")]
+g.2 <- gtable_add_cols(g.2, unit(4,"cm"))
+g.2 <- gtable_add_grob(g.2, ggplotGrob(kde.2 + theme(legend.position = 'none', plot.margin = unit(c(.13, 0, 0, 0), 'cm'))),
+                     t = panel_id$t, l = ncol(g.2))
+
+top <- grid.arrange(g.1, nrow = 1, top = textGrob("RerF Bootstrap - Subsampling", gp=gpar(fontface = "bold")))
+bottom <- grid.arrange(g.2, nrow = 1, top = textGrob("RF Bootstrap - Subsampling", gp=gpar(fontface = "bold")))
+```
+
+```{r}
+output <- grid.arrange(top, bottom, leg, nrow = 3, heights=c(1, 1, .1))
+
+ggsave(filename = './result.pdf', plot = output, width = 7, height = 7)
+```
+
