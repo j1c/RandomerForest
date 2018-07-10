@@ -109,7 +109,7 @@ for (m in classifiers) {
     prob <- 0.5
     
     if (m == "rerf-subsample") {
-      replacemet <- F
+      replacement <- F
     }
   }
   
