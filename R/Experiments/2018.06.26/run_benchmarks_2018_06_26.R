@@ -97,8 +97,6 @@ for (m in classifiers) {
   params[[dataSet]][[m]] <- list(replace = replace, mtrys = mtrys, nodesize = nodesize)
   
   size <- length(mtrys)
-  # OOBErrors <- vector("numeric", size)
-  # testError <- vector("numeric", size)
   OOBErrors <- matrix(as.double(rep(NA, size)), ncol = nFolds, nrow = size)
   testErrors <- matrix(as.double(rep(NA, size)), ncol = nFolds, nrow = size)
   
