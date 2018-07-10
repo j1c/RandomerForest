@@ -63,9 +63,9 @@ plotResults <- function(df, classifiers) {
     # annotate("text", label = paste0("p=", pvalue.all, "\np=", pvalue.categorical, "\np=", pvalue.numeric),
     #           x = 0, y = -1, vjust = 'inward', hjust = 'inward') 
     annotate("text", label = paste0("p=", pvalue.all), 
-             x = 0, y = -.70, vjust = 'inward', hjust = 'inward', color = "black") +
+             x = 0, y = -.6, vjust = 'inward', hjust = 'inward', color = "black") +
     annotate("text", label = paste0("p=", pvalue.categorical), 
-             x = 0, y = -.85, vjust = 'inward', hjust = 'inward', color = "#F8766D") +
+             x = 0, y = -.8, vjust = 'inward', hjust = 'inward', color = "#F8766D") +
     annotate("text", label = paste0("p=", pvalue.numeric), 
              x = 0, y = -1, vjust = 'inward', hjust = 'inward', color = "#00BFC4")
   
@@ -97,13 +97,13 @@ plot_grid(row.1, row.2, labels = "AUTO", nrow = 2, align = 'v')
 ```{r}
 leg <- g_legend(kde)
 
-output <- plot_grid(fig + ggtitle("RerF Boostrap - Subsampling"), fig.rf + ggtitle("RF Bootstrap - Subsampling"), leg,  labels = "AUTO", nrow = 3, label_size = 0,  align = 'hv', rel_heights = c(2, 2, .1))
+output <- plot_grid(fig + ggtitle("RerF Boostrap - Subsampling") + theme(legend.position = 'none'), fig.rf + ggtitle("RF Bootstrap - Subsampling") + theme(legend.position = 'none'), leg,  labels = "AUTO", nrow = 3, label_size = 0,  align = 'hv', rel_heights = c(2, 2, .1))
 
 print(output)
 ```
 
 ```{r}
-ggsave(filename = './results.pdf', plot = output, )
+ggsave(filename = './results.pdf', plot = output)
 ```
 
 
