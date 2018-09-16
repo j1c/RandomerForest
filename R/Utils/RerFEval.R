@@ -134,6 +134,10 @@ RerFEval <-
           params$prob <- 0.5
         }
         
+        if (!("rfPack" %in% params.names)) {
+          params$rfPack <- FALSE
+        }
+        
         if (params$random.matrix == "binary") {
           nforest <- length(params$d)*length(params$sparsity)*length(params$prob)
           trainTime <- vector(mode = "numeric", length = nforest)
@@ -163,7 +167,7 @@ RerFEval <-
                 forest <- RerF(Xtrain, Ytrain, trees = params$trees, mat.options = mat.options, rank.transform = params$rank.transform,
                                min.parent = params$min.parent, max.depth = params$max.depth, bagging = params$bagging, store.oob = params$store.oob,
                                store.impurity = params$store.impurity, replacement = params$replacement, stratify = params$stratify, num.cores = params$num.cores,
-                               seed = params$seed, cat.map = params$cat.map, rotate = params$rotate)
+                               seed = params$seed, cat.map = params$cat.map, rotate = params$rotate, rfPack = params$rfPack)
                 trainTime[forest.idx] <- (proc.time() - start.time)[[3L]]
                 print("training complete")
                 print(paste("elapsed time: ", trainTime[forest.idx], sep = ""))
@@ -236,8 +240,7 @@ RerFEval <-
               }
             }
           }
-        }
-        else if (params$random.matrix == "continuous" || params$random.matrix == "poisson" ||
+        } else if (params$random.matrix == "continuous" || params$random.matrix == "poisson" ||
             params$random.matrix == "frc" || params$random.matrix == "frcn") {
             nforest <- length(params$d)*length(params$sparsity)
             trainTime <- vector(mode = "numeric", length = nforest)
