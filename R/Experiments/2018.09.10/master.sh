@@ -20,7 +20,7 @@ echo "My SLURM_ARRAY_TASK_ID: " $SLURM_ARRAY_TASK_ID
 NAME_FILE=~/work/jaewon/data/uci/processed/names.txt
 DATASET=$(sed "${SLURM_ARRAY_TASK_ID}q;d" $NAME_FILE)
 
-sed "s/abalone/${DATASET}/g" run_benchmarks_2018_08_10.R > task${SLURM_ARRAY_TASK_ID}.R
+sed "s/abalone/${DATASET}/g" run_benchmarks_2018_09_10.R > task${SLURM_ARRAY_TASK_ID}.R
 
 Rscript task${SLURM_ARRAY_TASK_ID}.R
 
