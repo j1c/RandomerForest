@@ -11,18 +11,18 @@ library(R.utils)
 date <- "2018.09.10/"
 
 ## For MARCC
-rerfPath <- "~/work/jaewon/"
-dataPath <- "~/work/jaewon/RandomerForest/Data/uci/processed/"
-source(paste0(rerfPath, "RandomerForest/R/Utils/RerFEval.R"))
-source(paste0(rerfPath, "RandomerForest/R/Utils/GetCatMap.R"))
-source(paste0(rerfPath, "RandomerForest/R/Utils/GetFolds.R"))
+# rerfPath <- "~/work/jaewon/"
+# dataPath <- "~/work/jaewon/RandomerForest/Data/uci/processed/"
+# source(paste0(rerfPath, "RandomerForest/R/Utils/RerFEval.R"))
+# source(paste0(rerfPath, "RandomerForest/R/Utils/GetCatMap.R"))
+# source(paste0(rerfPath, "RandomerForest/R/Utils/GetFolds.R"))
 
 ## For local
-# rerfPath <- "./"
-# dataPath <- "./Data/uci/processed/"
-# source(paste0(rerfPath, "R/Utils/RerFEval.R"))
-# source(paste0(rerfPath, "R/Utils/GetCatMap.R"))
-# source(paste0(rerfPath, "R/Utils/GetFolds.R"))
+rerfPath <- "./"
+dataPath <- "./Data/uci/processed/"
+source(paste0(rerfPath, "R/Utils/RerFEval.R"))
+source(paste0(rerfPath, "R/Utils/GetCatMap.R"))
+source(paste0(rerfPath, "R/Utils/GetFolds.R"))
 
 
 
@@ -43,16 +43,36 @@ dataSet <- "abalone"
 fold <- GetFolds(paste0(dataPath, "cv_partitions/", dataSet, "_partitions.txt"))
 nFolds <- length(fold)
 X <- as.matrix(read.table(paste0(dataPath, "data/", dataSet, ".csv"), header = F, sep = ",", quote = "", row.names = NULL))
-catMap <- NULL
-p <- ncol(X) - 1L
-p.ohe <- p
-Y <- as.integer(X[, p + 1L]) + 1L
-X <- X[, -(p + 1L)]
-# remove columns with zero variance
-X <- X[, apply(X, 2, function(x) any(as.logical(diff(x))))]
-# mean-center and scale by sd
+
+catFiles <- list.files(paste0(dataPath, "categorical_map/"))
+if (paste0(dataSet, "_catmap.txt") %in% catFiles) {
+  catMap <- GetCatMap(paste0(dataPath, "categorical_map/", dataSet, "_catmap.txt"))
+  pcat <- length(catMap)
+  pnum <- catMap[[1L]][1L] - 1L
+  p <- pcat + pnum
+  p.ohe <- ncol(X) - 1L
+  Y <- as.integer(X[, p.ohe + 1L]) + 1L
+  X <- X[, -(p.ohe + 1L)]
+} else {
+  catMap <- NULL
+  p <- ncol(X) - 1L
+  p.ohe <- p
+  Y <- as.integer(X[, p + 1L]) + 1L
+  X <- X[, -(p + 1L)]
+}
 X <- scale(X)
-p <- ncol(X)
+
+# 
+# catMap <- NULL
+# p <- ncol(X) - 1L
+# p.ohe <- p
+# Y <- as.integer(X[, p + 1L]) + 1L
+# X <- X[, -(p + 1L)]
+# # remove columns with zero variance
+# X <- X[, apply(X, 2, function(x) any(as.logical(diff(x))))]
+# # mean-center and scale by sd
+# X <- scale(X)
+# p <- ncol(X)
 
 ## Parameters
 nTrees <- 500L
