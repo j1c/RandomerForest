@@ -1,0 +1,259 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library('ggplot2')
+library('grid')
+library('gridExtra')
+library('cowplot')
+```
+
+
+
+```{r}
+plotResults <- function(df, classifiers) {
+  library('ggplot2')
+  #library('cowplot')
+  
+  categories <- df[['Category']][seq(1, nrow(df), 5)]
+  error.cls.1 <- df[[classifiers[1]]]
+  error.cls.2 <- df[[classifiers[2]]]
+  
+  error.cls.1 <- rowMeans(t(matrix(error.cls.1, nrow = 5)))
+  error.cls.2 <- rowMeans(t(matrix(error.cls.2, nrow = 5)))
+  
+  alt <- 'g'
+  
+  wilcox.all <- wilcox.test(error.cls.1, error.cls.2, paired = T, alternative = alt)
+  wilcox.categorical <- wilcox.test(error.cls.1[categories == 'categorical'], 
+                                    error.cls.2[categories == 'categorical'],
+                                    paired = T,
+                                    alternative = alt)
+  wilcox.numeric <- wilcox.test(error.cls.1[categories == 'numeric'],
+                                error.cls.2[categories == 'numeric'], 
+                                paired = T,
+                                alternative = alt)
+  
+  pvalue.all <- format(round(wilcox.all$p.value, 2), scientific = T)
+  pvalue.categorical <- format(round(wilcox.categorical$p.value, 2), scientific = T)
+  pvalue.numeric <- format(round(wilcox.numeric$p.value, 2), scientific = T)
+  
+  mean.error <- sqrt((error.cls.1 + error.cls.2) / 2)
+  difference.error <- sqrt(abs(error.cls.1 - error.cls.2)) * sign(error.cls.1 - error.cls.2)
+  
+  df <- data.frame(mean.error, difference.error, categories)
+  names(df) <- c("mean", "diff", "category")
+  df$category <- factor(df$category)
+  
+  # Plot scatter
+  fig <- ggplot(df, aes(x = mean, y = diff, color = category)) + geom_point() +
+    theme(
+      panel.background = element_blank(), axis.line = element_line(colour = "black")
+    ) +
+    labs(
+      x = expression(sqrt("Mean Error")),
+      y = expression(sqrt("Difference in Error"))
+    ) +
+    geom_hline(yintercept = 0) +
+    xlim(0, 1) +
+    ylim(-1, 1) +
+    annotate("text", label = 'bold("Averaging Posterior Better")', x = 1, y = 1, parse = T, hjust = 'inward', vjust = 'inward') +
+    annotate("text", label = 'bold("Averaging Posterior Worse")', x = 1, y = -1, parse = T, hjust = 'inward', vjust = 'inward') + 
+    # annotate("text", label = paste0("p=", pvalue.all, "\np=", pvalue.categorical, "\np=", pvalue.numeric),
+    #           x = 0, y = -1, vjust = 'inward', hjust = 'inward') 
+    annotate("text", label = paste0("p=", pvalue.all), 
+             x = 0, y = -.6, vjust = 'inward', hjust = 'inward', color = "black") +
+    annotate("text", label = paste0("p=", pvalue.categorical), 
+             x = 0, y = -.8, vjust = 'inward', hjust = 'inward', color = "#F8766D") +
+    annotate("text", label = paste0("p=", pvalue.numeric), 
+             x = 0, y = -1, vjust = 'inward', hjust = 'inward', color = "#00BFC4")
+  
+  # Plot KDE
+  kde <- ggplot(df, aes(x = diff, color = category)) +
+    stat_density(geom = 'line', position = 'identity') + 
+    stat_density(aes(x = diff, color = 'all'),  geom = 'line') +
+    theme(panel.background = element_blank(), 
+          axis.line = element_blank(),
+          axis.ticks = element_blank(),
+          axis.text = element_blank(), 
+          axis.title = element_blank(), 
+          legend.direction = "horizontal",
+          legend.position = "bottom") +
+    geom_hline(yintercept = 0) + 
+    geom_vline(xintercept = 0) + 
+    xlim(-1, 1) +
+    coord_flip() + 
+    scale_color_manual(values=c('#000000','#F8766D','#00BFC4'))
+  
+  print(fig)
+  return(list(fig = fig, kde = kde))
+}
+```
+
+```{r}
+
+load('./data.RData')
+classifiers <- c('RerF.subsample','rerf.posterior')
+
+res <- plotResults(df, classifiers)
+fig.1 <- res$fig
+kde.1 <- res$kde
+
+print(kde.1)
+fig.1
+```
+
+
+```{r}
+row.1.label <- ggplot(data.frame()) + xlim(0, 1) + ylim(0, 1) + theme_void() + annotate("text", label = "RerF Boostrap - Subsample", x = 0.5, y= 0.5) + coord_flip()
+row.1 <- plot_grid(fig.1, row.1.label, labels = "AUTO", ncol = 2, align = 'h', rel_widths = c(1, 0.1))
+
+row.2.label <- ggplot(data.frame()) + xlim(0, 1) + ylim(0, 1) + theme_void() + annotate("text", label = "RF Boostrap - Subsample", x = 0.5, y= 0.5) + coord_flip()
+row.2 <- plot_grid(fig, row.2.label, labels = "AUTO", ncol = 2, align = 'h', rel_widths = c(1, 0.1))
+plot_grid(row.1, labels = "AUTO", nrow = 1, align = 'v')
+```
+
+```{r}
+leg <- g_legend(kde)
+
+output <- plot_grid(fig + ggtitle("RerF Boostrap - Subsampling") + theme(legend.position = 'none'), fig.rf + ggtitle("RF Bootstrap - Subsampling") + theme(legend.position = 'none'), leg,  labels = "AUTO", nrow = 3, label_size = 0,  align = 'hv', rel_heights = c(2, 2, .1))
+
+print(output)
+```
+
+```{r}
+ggsave(filename = './results.pdf', plot = output)
+```
+
+
+```{r}
+library('ggplot2')
+library('grid')
+library('gridExtra')
+library('gtable')
+
+plotResults <- function(df, classifiers, y.min = -1, y.max = 1) {
+  categories <- df[['Category']][seq(1, nrow(df), 5)]
+  error.cls.1 <- df[[classifiers[1]]]
+  error.cls.2 <- df[[classifiers[2]]]
+  
+  error.cls.1 <- rowMeans(t(matrix(error.cls.1, nrow = 5)))
+  error.cls.2 <- rowMeans(t(matrix(error.cls.2, nrow = 5)))
+  
+  # Compute One sided Wilcox Rank Test
+  alt <- 'less'
+  
+  wilcox.all <- wilcox.test(error.cls.1, error.cls.2, paired = T, alternative = alt, exact = F)
+  wilcox.categorical <- wilcox.test(error.cls.1[categories == 'categorical'], 
+                                    error.cls.2[categories == 'categorical'],
+                                    paired = T,
+                                    alternative = alt, 
+                                    exact = F)
+  wilcox.numeric <- wilcox.test(error.cls.1[categories == 'numeric'],
+                                error.cls.2[categories == 'numeric'], 
+                                paired = T,
+                                alternative = alt, 
+                                exact = F)
+  
+  pvalue.all <- format(round(wilcox.all$p.value, 2), scientific = T)
+  pvalue.categorical <- format(round(wilcox.categorical$p.value, 2), scientific = T)
+  pvalue.numeric <- format(round(wilcox.numeric$p.value, 2), scientific = T)
+  
+  mean.error <- sqrt((error.cls.1 + error.cls.2) / 2)
+  difference.error <- sqrt(abs(error.cls.1 - error.cls.2)) * sign(error.cls.1 - error.cls.2)
+  
+  df <- data.frame(mean.error, difference.error, categories)
+  names(df) <- c("mean", "diff", "category")
+  df$category <- factor(df$category)
+  
+  # Plot scatter
+  fig <- ggplot(df, aes(x = mean, y = diff, color = category)) + geom_point() +
+    theme(
+      panel.background = element_blank(), axis.line = element_line(colour = "black")
+    ) +
+    labs(
+      x = expression(sqrt("Mean Error")),
+      y = expression(sqrt("Difference in Error"))
+    ) +
+    geom_hline(yintercept = 0) +
+    xlim(0, 1) +
+    ylim(y.min, y.max) +
+    annotate("text", label = 'bold("Averaging Posterior Better")', x = 1, y = y.max, parse = T, hjust = 'inward', vjust = 'inward') +
+    annotate("text", label = 'bold("Averaging Posterior Worse")', x = 1, y = y.min, parse = T, hjust = 'inward', vjust = 'inward') + 
+    annotate("text", label = paste0("p=", pvalue.all), 
+             x = 0, y = y.min * .6, vjust = 'inward', hjust = 'inward', color = "black") +
+    annotate("text", label = paste0("p=", pvalue.categorical), 
+             x = 0, y = y.min * .8, vjust = 'inward', hjust = 'inward', color = "#F8766D") +
+    annotate("text", label = paste0("p=", pvalue.numeric), 
+             x = 0, y = y.min, vjust = 'inward', hjust = 'inward', color = "#00BFC4")
+  
+  # Plot KDE
+  kde <- ggplot(df, aes(x = diff, color = category)) +
+    stat_density(geom = 'line', position = 'identity') + 
+    stat_density(aes(x = diff, color = 'all'),  geom = 'line') +
+    theme(panel.background = element_blank(), 
+          axis.line = element_blank(),
+          axis.ticks = element_blank(),
+          axis.text = element_blank(), 
+          axis.title = element_blank(), 
+          legend.direction = "horizontal",
+          legend.position = "bottom") +
+    geom_hline(yintercept = 0) + 
+    geom_vline(xintercept = 0) + 
+    xlim(y.min, y.max) +
+    coord_flip() + 
+    scale_color_manual(values=c('#000000','#F8766D','#00BFC4'))
+  
+  # print(fig)
+  return(list(fig = fig, kde = kde))
+}
+
+
+load('./data.RData')
+
+res <- plotResults(df, c('RerF.subsample','rerf.posterior'), -.6, .6)
+fig.1 <- res$fig
+kde.1 <- res$kde + 
+  #scale_color_discrete("Dataset Type", labels = c('All', 'Categorical', 'Continuous')) +
+  scale_color_manual(values = c('#000000','#F8766D','#00BFC4'),
+                     labels = c("All",
+                                "Categorical",
+                                "Continuous"))
+
+res <- plotResults(df.rf, c('rf.bag', 'rf.subsample'), -.22, .22)
+fig.2 <- res$fig
+kde.2 <- res$kde
+
+# Get legend for separate plotting
+g_legend<-function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
+
+leg <- g_legend(kde.1) #+ guides(colour = guide_legend(override.aes = list(size = 3))))
+# Combine figures
+g.1 <- ggplotGrob(fig.1 + theme(legend.position = 'none'))
+panel_id <- g.1$layout[g.1$layout$name == "panel",c("t","l")]
+g.1 <- gtable_add_cols(g.1, unit(4,"cm"))
+g.1 <- gtable_add_grob(g.1, ggplotGrob(kde.1 + theme(legend.position = 'none', plot.margin = unit(c(.13, 0, 0, 0), 'cm'))),
+                     t = panel_id$t, l = ncol(g.1))
+
+g.2 <- ggplotGrob(fig.2 + theme(legend.position = 'none'))
+panel_id <- g.2$layout[g.2$layout$name == "panel", c("t","l")]
+g.2 <- gtable_add_cols(g.2, unit(4,"cm"))
+g.2 <- gtable_add_grob(g.2, ggplotGrob(kde.2 + theme(legend.position = 'none', plot.margin = unit(c(.13, 0, 0, 0), 'cm'))),
+                     t = panel_id$t, l = ncol(g.2))
+
+top <- grid.arrange(g.1, nrow = 1, top = textGrob("RerF Averaging Posterior vs Averaging Predictions", gp=gpar(fontface = "bold")))
+bottom <- grid.arrange(g.2, nrow = 1, top = textGrob("RF Bootstrap - Subsampling", gp=gpar(fontface = "bold")))
+
+output <- grid.arrange(top, leg, nrow = 2, heights=c(1, .1))
+```
+
+```{r}
+ggsave(filename = './results.pdf', plot = output, width = 7, height = 5)
+```
+

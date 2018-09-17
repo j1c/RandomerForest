@@ -1,0 +1,62 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+results.path <- './Results/'
+
+rdata.files <- list.files(path = results.path)
+
+df.posterior <- data.frame(matrix(NA, ncol = 2, nrow = 105 * 5))
+colnames(df.posterior) <- c('categories', 'rerf.posterior')
+
+for (i in 1:length(rdata.files)) {
+  temp <- 1:5
+  
+  load(paste0(results.path, rdata.files[i]))
+  errors <- testError[[1]][[1]]
+  idx <- bestIdx[[1]][[1]]
+
+  for (j in 1:5) {
+    temp[j] <- errors[j, idx[j]]
+  }
+  if (i == 1) {
+    lower <- 1
+    upper <- 5
+  } else {
+    lower <- (i - 1) * 5 + 1
+    upper <- (i) * 5
+  }
+  df.posterior[lower:upper, 2] <- temp
+}
+```
+
+```{r}
+
+df.posterior[5:10, 2] <- c(1, 2, 3, 4, 5)
+
+df.posterior[1:nrow(df.posterior), 2]
+
+df2 <- cbind(df, df.posterior[1:nrow(df.posterior), 2])
+```
+
+
+
+```{r}
+colnames(df2)[length(colnames(df2))] <- 'rerf.posterior'
+
+df <- df2
+
+df[95, 10] <- 0.214
+```
+
+```{r}
+save(df, file='data.RData')
+```
+
